@@ -11,14 +11,17 @@ const clerkWebhooks = async (req, res) => {
             "svix-signature": req.headers["svix-signature"],
         };
 
-        await whook.verify(JSON.stringify(req.body), headers);
+        // Handle raw body for webhook verification
+        const payload = req.body;
+        await whook.verify(payload, headers);
 
-        const { data, type } = req.body;
+        // Parse the JSON after verification
+        const { data, type } = JSON.parse(payload.toString());
 
         const userData = {
             _id: data.id,
             email: data.email_addresses[0].email_address,
-            username: data.first_name + " " + data.last_name,
+            username: `${data.first_name || ''} ${data.last_name || ''}`.trim(),
             image: data.image_url,
             recentSearchedCities: []
         };
