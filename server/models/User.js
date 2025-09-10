@@ -1,16 +1,12 @@
 import mongoose from 'mongoose';
 
-const userSchema = mongoose.Schema({
-    _id: {type: String, required: true},
-    username: {type: String, required: true},
-    email: {type: String, required: true},
-    image: {type: String, required: true},
-    role: {type: String, enum: ["user", "hotelOwner"], default: "user"},
-    recentSearchedCities: [{type: String, required: true}],
-},{ timestamps: true }
-);
+const userSchema = new mongoose.Schema({
+  _id: { type: String, required: true }, // Clerk user id
+  username: { type: String, required: true },
+  email: { type: String, required: true },
+  image: { type: String, default: 'https://yourapp.com/default-avatar.png' },
+  role: { type: String, enum: ["user", "hotelOwner"], default: "user" },
+  recentSearchedCities: [{ type: String }] // allow empty array
+}, { timestamps: true });
 
-
-const User = mongoose.model("User", userSchema);
-
-export default User;
+export default mongoose.model("User", userSchema);

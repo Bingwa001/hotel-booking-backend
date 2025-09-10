@@ -1,16 +1,13 @@
 import mongoose from 'mongoose';
 
 const roomSchema = new mongoose.Schema({
-      hotel: {type: String, ref: "Hotel", reqiured: true},
-      roomType: {type: String, reqiured: true},
-      pricePerNight: {type: Number, reqiured: true},
-      amenities: {type: Array, reqiured: true},
+      hotel: {type: String, ref: "Hotel", required: true}, // Fixed: "required" not "reqiured"
+      roomType: {type: String, required: true}, // Fixed: "required" not "reqiured"  
+      pricePerNight: {type: Number, required: true}, // Fixed: "required" not "reqiured"
+      amenities: {type: Array, required: true}, // Fixed: "required" not "reqiured"
       images: [{type: String }],
       isAvailable: {type: Boolean, default: true},
-
-      
 },{ timestamps: true });
-    
 
 const Room = mongoose.model('Room', roomSchema);
 

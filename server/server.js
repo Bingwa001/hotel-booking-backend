@@ -1,32 +1,41 @@
+// server.js
 import express from 'express';
-import "dotenv/config";
-import cors from 'cors';  
-import connectDB from './configs/db.js';   
-import { clerkMiddleware } from '@clerk/express'
+import 'dotenv/config';
+import cors from 'cors';
+import connectDB from './configs/db.js';
+import { clerkMiddleware } from '@clerk/express';
 import clerkWebhooks from './controllers/clerkWebhooks.js';
 import userRouter from './routes/userRoutes.js';
 import hotelRouter from './routes/hotelRoutes.js';
+import connectCloudinary from './configs/cloudinary.js';
+import roomRouter from './routes/roomRoutes.js';
+import bookingRouter from './routes/bookingRoutes.js';
 
-connectDB()
+// Connect to DB and Cloudinary first
+connectDB();
+connectCloudinary();
 
 const app = express();
+
+// CORS
 app.use(cors());
 
-// IMPORTANT: Raw body parsing for webhooks BEFORE express.json()
-app.use('/api/clerk', express.raw({ type: 'application/json' }));
+// ---- Clerk Webhook route FIRST (raw body) ----
+app.use('/api/clerk', clerkWebhooks);
+
+// ---- Normal middlewares ----
 app.use(express.json());
-app.use(clerkMiddleware());
+app.use(express.urlencoded({ extended: true }));
 
-// Create proper route
-app.post("/api/clerk/webhooks", clerkWebhooks);
-app.get('/', (req, res) => res.send("API is working"));
-app.use('/api/user', userRouter);
+// ---- Root route ----
+app.get('/', (req, res) => res.send('API is working'));
+
+// ---- Authenticated routes ----
+app.use('/api/user', clerkMiddleware(), userRouter);
 app.use('/api/hotels', hotelRouter);
+app.use('/api/rooms', roomRouter);
+app.use('/api/bookings', bookingRouter);
 
-
-
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+// ❌ DO NOT call app.listen() on Vercel
+// ✅ Instead export the app for Vercel
+export default app;
