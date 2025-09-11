@@ -2,14 +2,21 @@
 import express from 'express';
 import 'dotenv/config';
 import cors from 'cors';
-import mongoose from 'mongoose';
+import mongoose from 'mongoose';  // Add this line
 import connectDB from './configs/db.js';
 import clerkWebhooks from './controllers/clerkWebhooks.js';
 import userRouter from './routes/userRoutes.js';
 import { clerkMiddleware } from '@clerk/express';
 
 const startServer = async () => {
+  // Connect to database first
   await connectDB();
+  
+  // Wait a moment to ensure connection is established
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  // Verify connection before starting server
+  console.log('Final connection state:', mongoose.connection.readyState);
 
   const app = express();
   app.use(cors());
@@ -23,36 +30,16 @@ const startServer = async () => {
   // Basic route
   app.get('/', (req, res) => res.send('API is working'));
 
-  // Test endpoint with simple mongoose check
+  // Test and health check endpoints
   app.get('/api/test', (req, res) => {
     console.log('🚀 Test API endpoint called!');
-    
-    try {
-      const mongoState = mongoose.connection.readyState;
-      const isConnected = mongoState === 1;
-      
-      console.log('🔍 Mongoose state:', mongoState, 'Connected:', isConnected);
-      
-      res.json({
-        success: true,
-        message: 'Backend API is working!',
-        timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV,
-        mongoConnected: isConnected,
-        mongoState: mongoState,
-        connectionName: mongoose.connection.name
-      });
-    } catch (error) {
-      console.log('❌ Mongoose error:', error);
-      res.json({
-        success: true,
-        message: 'Backend API is working!',
-        timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV,
-        mongoConnected: false,
-        error: error.message
-      });
-    }
+    res.json({
+      success: true,
+      message: 'Backend API is working!',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV,
+      mongoConnected: !!global.mongoose?.connection?.readyState
+    });
   });
 
   app.get('/api/health', (req, res) => {
