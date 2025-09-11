@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 const connectDB = async () => {
     try {
+        // Set up event listeners before connecting
         mongoose.connection.on('connected', () => {
             console.log("Database Connected successfully");
             console.log("Connected to:", mongoose.connection.name);
@@ -11,9 +12,21 @@ const connectDB = async () => {
             console.log("Database connection error:", err);
         });
         
-        await mongoose.connect(process.env.MONGODB_URI);
+        mongoose.connection.on('disconnected', () => {
+            console.log("Database disconnected");
+        });
+        
+        // Connect and wait for the connection to be established
+        const conn = await mongoose.connect(process.env.MONGODB_URI);
+        
+        // Additional confirmation
+        console.log(`MongoDB Connected: ${conn.connection.host}`);
+        console.log(`Connection State: ${mongoose.connection.readyState}`); // Should be 1
+        
+        return conn;
     } catch (error) {
         console.log("Connection failed:", error.message);
+        process.exit(1);
     }
 }
   
